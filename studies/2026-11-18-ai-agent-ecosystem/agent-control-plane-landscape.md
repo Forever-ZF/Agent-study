@@ -1,7 +1,7 @@
 # 控制面层全景：2026 年 11 月的 Agent Orchestration 生态
 
-> 整理时间：2026-11-18 ｜ 口径：GitHub 元数据 + 各产品官方文档（star 数为 11/15–11/18 期间目录站抓取值，各站略有差异）
-> 姊妹文档：[`ai-2026-11-overview.md`](./ai-2026-11-overview.md) —— 全景入口（模型 / Codex / OpenClaw / WorkBuddy / dots / Muse / 百虾大战）。本文只讲**控制面层**。
+> 整理时间：2026-11-18 ｜ 口径：GitHub REST API 实时值（token 认证，2026-11-18 抓取）+ 各产品官方文档
+> 姊妹文档：[`ai-2026-11-overview.md`](./ai-2026-11-overview.md)（全景入口）· [`development-history.md`](./development-history.md)（纵轴：发展史）· [`status-review-2026-11-18.md`](./status-review-2026-11-18.md)（现状核查）。本文只讲**控制面层**。
 
 ## 一、这一层是什么，为什么现在才爆发
 
@@ -44,9 +44,38 @@
 | [awesome-agent-orchestration](https://github.com/anhermon/awesome-agent-orchestration) | 策展式地图 |
 | [Agent Harness Engineering: A Survey](https://openreview.net/pdf?id=eONq7FdiHa) | 学术侧分类框架（OSAURUS 表） |
 
-**一个重要判断**：这一层几乎全部集中在**编码**场景。因为只有编码 agent 同时具备三个清晰边界——CLI 进程、git 仓库、PR 流程。通用场景（WorkBuddy / OpenClaw / Grok Bot）的控制面至今没有成型，这正是 T3 Code 的 provider 列表里一个通用智能体都没有的原因。
+**一个重要判断（已修正）**：这一层几乎全部集中在**编码**场景。因为只有编码 agent 同时具备三个清晰边界——CLI 进程、git 仓库、PR 流程。这仍然是事实——T3 Code 的 provider 列表里依然一个通用智能体都没有。
 
-值得留意的是，**通用场景的这块空白正在被"产品内部消化"而不是被控制面填补**：ClawBot（clawbot-ai.app）有 9+ 个专员、各自独立记忆、独立订阅、分级审批，看起来就是控制面；但专员全是它自家人、跑在自研 AgentOS 上，**不 spawn 任何第三方 agent 进程**。所以它是**智能体层 + 产品内部编排**，不是控制面层——它证明的是"控制面语义的需求真实"，但通用答案依然缺席。
+但**"通用场景的控制面至今是空白"这条判断在 2026-11 已经不成立**，有五条反证：
+
+1. **OpenClaw 自己就是控制面。** 官方 FAQ 自述："It is a **local-first control plane** that runs a capable assistant on your own hardware." Gateway 即控制面——负责鉴权、路由 agent 与 session、组装上下文、加载插件；`operator-scopes` 定义了 operator.read / operator.sessions.read / operator.admin 等作用域模型，并有 "Mission Control" 编排 agent
+2. **OpenClaw Enterprise（OCE）明确提供多租户控制面。** 文档原话："Deploying an Agent is a control-plane operation; processing a message is data-plane work." OCC（OpenClaw Control Plane）跑在 `openclaw-system` 命名空间，租户数据面在独立命名空间，每个 Namespace 一个 Gateway，Envoy Gateway 负责路由
+3. **第三方通用控制面已出现。** **ClawManager**（桌面控制中心 + 开源 Kubernetes 原生版，管 OpenClaw 实例、运行时编排、可复用资源、安全扫描）、Joseph Bergvinson 的 openclaw-control-plane、Control Plane（商业托管方案）
+4. **企业侧已成品类。** IBM watsonx Orchestrate 的 agentic control plane（2026-05 起）；Appian 在 2026-11-17 Appian Europe 发布 agent 管理控制面能力；Bay（Series A $3700 万）、Lumbra（Series A $2500 万）、Orchestra 都在做 runtime control plane；**IBM + Microsoft 于 2026-11-10 发布 Imagine Enterprise**
+5. **分析机构已给出品类。** **Gartner 2026-10-27 发布首届「AI Agent Management Platforms (AMP)」魔力象限**，定义："centralized software platforms that manage AI agents independent of where they are deployed"。IBM 与 Microsoft 同被列为 Leader
+
+至于 ClawBot（clawbot-ai.app）——有 9+ 个专员、各自独立记忆、独立订阅、分级审批，看起来就是控制面；但专员全是它自家人、跑在自研 AgentOS 上，**不 spawn 任何第三方 agent 进程**。所以它仍是**智能体层 + 产品内部编排**，不是通用控制面。
+
+**更准确的表述**：编码场景的控制面已高度成熟并正在向企业治理走；通用智能体的控制面不是"空白"，而是**刚从"产品内部编排"（ClawBot 模式）长出独立的第三方基础设施**——OpenClaw 基金会的 OCC 和开源社区的 ClawManager 就是第一批。
+
+### 2026-11 的实时规模（GitHub API，token 认证）
+
+| 仓库 | star | fork | open issues | 创建 | 最新 release |
+|---|---|---|---|---|---|
+| openclaw/openclaw | 394,713 | 82,918 | 8,312 | 2025-11-24 | v2026.11.5（11-17） |
+| anthropics/claude-code | 156,109 | 25,028 | 17,085 | 2025-02-22 | v2.1.327（11-17） |
+| stablyai/orca | 128,418 | 8,145 | 8,430 | 2026-03-17 | v1.4.263（11-18） |
+| openai/codex | 135,757 | 21,520 | 27,767 | 2025-04-13 | rust-v0.170.0（11-18） |
+| paperclipai/paperclip | 114,693 | 19,032 | 6,875 | 2026-03-02 | v2026.1106.0（11-06） |
+| google-gemini/gemini-cli | 108,914 | 14,959 | 739 | 2025-04-17 | v0.68.0（11-10） |
+| pingdotgg/t3code | 64,728 | 11,363 | 3,552 | 2026-02-08 | v0.1.10（11-17） |
+| multica-ai/multica | 56,564 | 7,460 | 1,950 | 2026-01-13 | v0.11.0（11-18） |
+| herdrdev/herdr | 51,687 | 4,181 | 518 | 2026-03-27 | v0.9.5（10-14） |
+| getpaseo/paseo | 24,332 | 3,020 | 2,173 | 2025-10-13 | v0.16.1（11-17） |
+| ParadevAI/Paradev | 16,379 | 1,470 | 1,273 | 2025-10-21 | — |
+| davidondrej/cloudroom | 1,760 | 310 | 69 | 2026-09-17 | — |
+
+补充实测值：vibe-kanban 28,728 ／ Codewhale 41,183 ／ gastown 18,830 ／ oh-my-claudecode 40,920 ／ OpenRig 8,887 ／ stagewise 6,835 ／ AgentTeams 6,039 ／ agent-autoloop 5,869 ／ ClawTeam 5,554 ／ LoopForge 3,705 ／ Kandev 1,144。
 
 ---
 
@@ -69,7 +98,7 @@
 
 ### Orca — 目前这一类的天花板
 
-`stablyai/orca` ｜ **~127k star** ｜ MIT ｜ macOS / Windows / Linux + iOS App Store + Google Play ｜ YC 背书
+`stablyai/orca` ｜ **128,418 star / 8,145 fork** ｜ MIT ｜ macOS / Windows / Linux + iOS App Store + Google Play ｜ YC 背书
 
 - 定位：ADE（Agent Development Environment），"Run Claude Code, Codex, and any other coding agent in parallel, each in its own worktree"
 - **支持的 agent 列表极长**：Claude Code、Codex、Grok、Cursor、GitHub Copilot、OpenCode、MiMo Code、Amp、Antigravity、Pi、oh-my-pi、Hermes Agent、Devin、Goose、Cline、Kilocode、Kimi、Kiro、Mistral Vibe、Qwen Code、Rovo Dev……以及任何 CLI agent
@@ -79,7 +108,7 @@
 
 ### T3 Code
 
-`pingdotgg/t3code` ｜ **~64k star** ｜ MIT ｜ Electron + TypeScript ｜ Theo Browne / T3 Tools Inc.
+`pingdotgg/t3code` ｜ **64,728 star / 11,363 fork** ｜ MIT ｜ Electron + TypeScript ｜ Theo Browne / T3 Tools Inc.
 
 - 差异化：**多端同屏**（桌面 / Web app.t3.codes / iOS / Android 显示同一批线程）、**worktree + 一键 PR**（标题、描述、更新日志自动生成，支持 draft PR 与 stacked PR）
 - 远程：局域网 / Tailscale / T3 Connect（第三方 relay）；`t3 service install` 后台常驻
@@ -88,7 +117,7 @@
 
 ### Paseo
 
-`getpaseo/paseo` ｜ MIT ｜ daemon 架构 ｜ 桌面 + 移动
+`getpaseo/paseo` ｜ **24,332 star / 3,020 fork** ｜ MIT ｜ daemon 架构 ｜ 桌面 + 移动
 
 - 原生 structured harness：Claude Code、Codex、Copilot、OpenCode、Pi、Antigravity、**Muse Code**；再加 **30+ ACP agent** 与任意自定义 CLI agent
 - **有真正的编排语义**：让编程 agent 协调其他 agent，把工作分配到不同 provider 和机器；支持 **heartbeat**（定时让同一个 agent 继续任务）、agent profile（provider / model / thinking level / mode 一键复用）
@@ -122,10 +151,15 @@ Mac 原生 ｜ 商业
 
 `conductor.build`
 
-- Mac app 免费；**2026-11-04 起 Pro 也免费**（原本 Pro $50/月、Teams $60/人/月）
+- **2026-11-04 宣布加入 Meta**（CEO Charlie Holtz 亲自宣布）
+- **Conductor Cloud 2026-11-13 转为只读，2026-11-20 关停并删除用户数据**
+- **本地 Mac 版撑到 2027 年初**，在此之前继续获得新模型和关键 bug 修复；提供 "Transfer to local" 迁移工具
 - Claude Code、Codex、OpenCode 内置，Cursor Agent 需自备 key
-- **云沙箱**：每个 agent 一个 sandbox（amazon linux 2023 + node24/git/gh/jq/rg/tmux…），关掉 app 继续跑；本地模式下消息直发 provider、会话数据留在本机
 - Routines：定时或 GitHub 触发 agent 运行
+
+> **替代品叙事已成气候**：Paperclip 官方发布《Conductor alternatives in 2026: 8 tools compared》，列出 **Paperclip、Orca、T3 Code、Paradev、Herdr、Paseo、Multica、Cloudroom**。其中 **Paradev** 自述为 "open-source Codex App and Conductor alternative"，**Cloudroom** 是 "Cloud agents for any harness"（Claude Code / Codex / Pi / OpenCode 跑在隔离沙箱，活会话在 Mac 与云之间迁移）。
+
+> 来源：[TechCrunch](https://techcrunch.com/2026/11/04/meta-acquires-ai-coding-startup-conductor/)、[Axios](https://www.axios.com/2026/11/04/meta-acquires-ai-coding-startup-conductor)、[Conductor changelog](https://www.conductor.build/)、[Paperclip 对比](https://www.paperclip.inc/blog/conductor-alternatives-control-plane/)、[Caprock 对比](https://caprock.dev/guides/conductor-alternatives/)
 
 ### Vibe Kanban
 
@@ -154,7 +188,7 @@ Mac 原生 ｜ 商业
 
 ### Paperclip —— 概念上最激进的一个
 
-`paperclipai/paperclip` ｜ **~114k star** ｜ 18.9k fork ｜ MIT ｜ TypeScript
+`paperclipai/paperclip` ｜ **114,693 star / 19,032 fork** ｜ MIT ｜ TypeScript
 
 - 一句话定位：**"If OpenClaw is an employee, Paperclip is the company."**
 - 能力：组织架构图（org charts）、**预算**、治理、目标对齐、agent 协调
@@ -210,21 +244,23 @@ Mac 原生 ｜ 商业
 
 | 项目 | 形态 | 规模 |
 |---|---|---|
-| **herdr** (~51.5k) | Go tmux TUI，跑 9 个 coding CLI，逐 CLI 状态检测、diff review、worktree 生成 | 中 |
-| **multica** (~56.5k) | — | 中 |
+| **herdr** (51,687) | Go tmux TUI，跑 9 个 coding CLI，逐 CLI 状态检测、diff review、worktree 生成 | 中 |
+| **multica** (56,564) | "Make humans and AI agents work as one team"——开源可自托管 | 中 |
 | **amux** (~560★，MIT + Commons Clause) | tmux/herdr + Rust 二进制 + SQLite，coding fleet 编排器 | 中 |
-| **OpenRig** (~8.9k, Apache-2.0) | YAML 定义的 agent team，Claude Code 和 Codex 作为常驻 tmux 系统 | 中 |
-| **gastown** (~18.8k, Go) | 扩到 **20–30 个 agent**，git-backed issue tracking，**Bors 式合并队列** | 大 |
+| **OpenRig** (8,887, Apache-2.0) | YAML 定义的 agent team，Claude Code 和 Codex 作为常驻 tmux 系统 | 中 |
+| **gastown** (18,830, Go) | 扩到 **20–30 个 agent**，git-backed issue tracking，**Bors 式合并队列** | 大 |
 | **OmO** (~70.9k) | 一个 prompt 变成跨模型的并行 agent 图 | 大 |
-| **Codewhale** (~41.2k, Rust) | 把一个任务拆给多个 agent，支持任意模型 | 大 |
+| **Codewhale** (41,183, Rust) | 把一个任务拆给多个 agent，支持任意模型 | 大 |
 | **buzz** (~37.5k, Apache-2.0) | Nostr relay 频道，agent 作为成员，各自有密钥和审计轨迹 | 大 |
-| **oh-my-claudecode** (~40.9k) | Claude Code 插件，多 agent 自动驾驶流水线（规划 / 执行 / QA 三段） | 中 |
+| **oh-my-claudecode** (40,920) | Claude Code 插件，多 agent 自动驾驶流水线（规划 / 执行 / QA 三段） | 中 |
 | **Claude Octopus** (~4.4k) | 把一个任务派给多个模型 CLI，带**共识门**与议会式审议 | 中 |
-| **AgentTeams** (~6.0k, Go) | Manager-Workers 运行时，manager 编排 worker，在 Matrix 房间协作 | 中 |
-| **ClawTeam** (~5.6k) | agent 自己一条命令生成队友，文件或 P2P 收件箱通信 | 中 |
+| **AgentTeams** (6,039, Go) | Manager-Workers 运行时，manager 编排 worker，在 Matrix 房间协作 | 中 |
+| **ClawTeam** (5,554) | agent 自己一条命令生成队友，文件或 P2P 收件箱通信 | 中 |
 | **pi-subagents** (~4.2k) | 让 Pi 委派给并行前台 / 后台子 agent | 小 |
 | **zeroshot** (~1.6k) | planner + implementer + **独立验证者**在隔离环境跑，循环到验证通过或可复现失败 | 中 |
 | **Ralph orchestrator** (~3k) | Hat 式循环，维护 agent 直到任务完成 | 中 |
+
+> 表中括号内为 GitHub API 2026-11-18 实时值；带 `~` 的项目未逐一核验，沿用目录站口径。
 
 ---
 
@@ -234,28 +270,33 @@ Mac 原生 ｜ 商业
 
 | 事实 | 数据 |
 |---|---|
-| 稳定线协议版本 | **v1**（2026-11-05） |
-| ACP Registry 收录 agent | **47 个**（2026-11-13，每小时同步各 agent 新版本，每个带 `agent.json`：npx 包或分平台二进制 + sha256 + 启动参数） |
-| 官方适配器 | `claude-agent-acp`（~2.8k star，v0.107.0）、`codex-acp`（v1.12.0） |
+| 稳定线协议版本 | **v1**（2026-11-05 发布，v1.16.0 / schema-v1.30.0） |
+| 最新版本 | **v1.17.0**（2026-11-10 / 11-17），v2 draft 继续推进（schema-v2.0.0-alpha.15） |
+| ACP Registry 收录 agent | **51 个**（2026-11-12 起计数；每小时同步各 agent 新版本，每个带 `agent.json`：npx 包或分平台二进制 + sha256 + 启动参数） |
+| 官方适配器 | `claude-agent-acp`、`codex-acp`（v1.12.0） |
 | 大厂落地 | **JetBrains 2026-09-22 发布 JetBrains Air**，明确以 ACP 作为 IDE ↔ agent harness 的连接标准；IntelliJ / AI Assistant 支持 ACP |
 | 谁在吃 ACP | T3 Code、OpenHands Agent Canvas、Orca、Paseo、OpenClaw（ACP agents 插件）、goose、Zed、CompozyOS、acpx、LoopForge |
 
 **意义**：这一层正在"协议化"，不再各自造私有适配。判断一个控制面产品的成熟度，看它支持几个 ACP agent、能否接任意 CLI。
 
+> 来源：[agentclientprotocol/registry](https://github.com/agentclientprotocol/registry)、[acpserver.org/registry](https://acpserver.org/registry)、[agentclientprotocol.com](https://agentclientprotocol.com)、[tomrochette.com ACP 跟踪](https://www.tomrochette.com/agents/protocols/acp/)
+
 ---
 
 ## 八、五个趋势判断
 
-1. **这一层是 2026 年最大的开源拥挤赛道之一。** 343+ 个工具、多个 100k+ star 项目（Orca 127k、Paperclip 114k、t3code 64k），但大多数是同一批想法的不同实现——worktree 隔离 + 多 provider + diff review + 一键 PR。
+1. **这一层是 2026 年最大的开源拥挤赛道之一。** 343+ 个工具、多个 100k+ star 项目（Orca 128,418、Paperclip 114,693、t3code 64,728），但大多数是同一批想法的不同实现——worktree 隔离 + 多 provider + diff review + 一键 PR。
 
 2. **价值正在从"能开几个 agent"往"能治理"迁移。** Paperclip 的组织架构 / 预算 / hire 审批、gastown 的 20–30 agent 合并队列、agent-autoloop 的 `why 42` 审计链——这些是控制面真正的护城河，前端 UI 反而在快速同质化。
 
 3. **ACP 是这一层的收敛点。** 有了 ACP registry，Claude Code / Codex / Cursor / Gemini CLI / OpenCode / Pi / Qwen Code 都能被同样接进来。**建议选型时优先看 ACP 兼容性，而不是看它自称支持多少 agent。**
 
-4. **通用场景的控制面还没形成。** 全部集中在编码，因为只有编码 agent 有清晰边界（CLI + git + PR）。WorkBuddy / OpenClaw / Grok Bot 这一侧，"控制面"至今是空白——OpenClaw 有 ACP agents 插件能跑外部 harness，方向反过来了。
-   注意别把 ClawBot 这类**产品内部多角色编排**误算成控制面：它不驱动第三方进程。
+4. **通用场景的控制面不是"空白"，而是刚刚长出来。** 全部集中在编码，因为只有编码 agent 有清晰边界（CLI + git + PR）——这一点没变。但"通用 agent 没有控制面"这句话在 2026-11 已经过期：**OpenClaw 自称 "local-first control plane" 且 OCE 提供多租户控制面、ClawManager 等第三方控制面已出、IBM/Appian 已把 agentic control plane 做成企业品类、Gartner 已为 AI Agent Management Platforms 立项首届魔力象限**。
+   注意别把 ClawBot 这类**产品内部多角色编排**误算成控制面：它不驱动第三方进程。但"OpenClaw 有 ACP agents 插件能跑外部 harness"这个观察本身也过时了——**它已经在被别人当控制面来用了**。
 
-5. **国内在这一层起步晚但已有动作。** 腾讯 LoopForge（Go 控制面，web/CLI/API/移动/Slack，正在做通用 ACP 执行器）、CodeBuddy 生态；国内更多精力还压在智能体层（百虾大战）和模型层。
+5. **国内在这一层起步晚但已有动作。** 腾讯 LoopForge（Go 控制面，web/CLI/API/移动/Slack，正在做通用 ACP 执行器）、CodeBuddy 生态；国内更多精力还压在智能体层（百虾大战）和模型层。百度的做法值得一提：**百度搭子把 Harness 引擎直接开放了**——不是做控制面产品，而是把控制面作为智能体平台的公共组件。
+
+6. **这一层的战略价值已经被资本市场确认。** Conductor 于 2026-11-04 并入 Meta；LangChain 2026-11-14 宣布 $3 亿 C 轮、估值 $30 亿；企业级控制面融资潮（Orchestra $460 万、Bay $3700 万、Lumbra $2500 万）；IBM + Microsoft 2026-11-10 发布 Imagine Enterprise。
 
 ---
 
@@ -271,7 +312,7 @@ Mac 原生 ｜ 商业
 | 想做事件驱动、常驻、跨机器 | **agent-autoloop**（飞书卡片审计最细）、**LoopForge**（腾讯，国内） |
 | 只用 Claude Code 且想极致并行 | **Tenfold**（Mac，Notch + 撞文件告警） |
 | 要规模化到 20+ agent | **gastown**（合并队列）、**Paperclip** |
-| 要通用 agent（非编码）编排 | **目前没有成熟选项**——这是这一层的真实空白 |
+| 要通用 agent（非编码）编排 | **OpenClaw Enterprise（OCC，多租户控制面）** 或 **ClawManager**；企业侧看 **IBM watsonx Orchestrate / Appian / Agent 365**。编码专用的通用替代品看 **Paradev / Cloudroom / Paseo** |
 
 ---
 

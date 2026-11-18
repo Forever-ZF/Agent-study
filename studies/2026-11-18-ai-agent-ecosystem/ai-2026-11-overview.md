@@ -1,7 +1,7 @@
 # AI 发展现状整理：从 LLM 到常驻通用智能体
 
 > 整理时间：2026-11-18 ｜ 口径：公开信息 + 一手文档
-> 姊妹文档：[`agent-control-plane-landscape.md`](./agent-control-plane-landscape.md) —— 控制面层专章。本文是全景入口，"谁在 spawn 谁"看那一份。
+> 姊妹文档：[`development-history.md`](./development-history.md)（纵轴：完整发展史）· [`status-review-2026-11-18.md`](./status-review-2026-11-18.md)（横轴：逐条核查与监管/安全/口碑）· [`agent-control-plane-landscape.md`](./agent-control-plane-landscape.md)（控制面层专章）。本文是全景入口，"谁在 spawn 谁"看控制面那一份。
 
 ## 一、一句话概括
 
@@ -36,7 +36,15 @@
 2. **控制面层 ≠ 方法论层。** T3 Code 真的 spawn 出别的 agent 进程；solo-to-team-skills 只是把 skill 拷进 Codex / Claude Code / Grok 的目录，**跨 agent 搬运、催办、验收仍是人工的**，自动的只有 skill 内部步骤，且 `hooks: {}` 意味着没有定时叫醒。
 3. **同一家不同产品可以分属不同层。** Meta **Muse**（消费级 App）属智能体层；**Muse Code**（终端编码 agent）才是控制面层可选的 provider。名字像，层不同。
 
-**一个反向的空白**：ClawBot（clawbot-ai.app）看起来像控制面——9 个专员、各自独立记忆、独立订阅、分级审批——但专员全是自家人、跑在自研 AgentOS 上，不 spawn 任何第三方 agent 进程，所以它是**智能体层 + 产品内部角色编排**。它更像是把控制面语义闭源内化进了单个产品，而不是提供了通用控制面。（同名物另有两个：微信官方 ClawBot 是 OpenClaw 的微信插件；clawbot.ai 是另一个站点。）
+**一个需要修正的旧判断**：原版本写"通用智能体的控制面至今是空白"，**这条在 2026-11 已经不成立**：
+
+- **OpenClaw 自己就自称控制面**——官方 FAQ 原话是 "It is a **local-first control plane** that runs a capable assistant on your own hardware"，Gateway 即控制面；**OpenClaw Enterprise（OCE）** 更明确提供多租户控制面（OCC 跑在控制面命名空间，租户数据面隔离）
+- **第三方通用控制面已出现**：ClawManager（桌面版 + 开源 K8s 版）等
+- **企业侧已成品类**：IBM watsonx Orchestrate 的 agentic control plane、Appian（11-17 发布 agent 管理控制面能力）；**Gartner 2026-10-27 已发布首届「AI Agent Management Platforms」魔力象限**
+
+更准确的表述是：**编码场景的控制面已高度成熟并向企业治理走；通用智能体的控制面不是"空白"，而是刚从"产品内部编排"长出独立的第三方基础设施。**
+
+至于 ClawBot（clawbot-ai.app）——9 个专员、各自独立记忆、独立订阅、分级审批——但专员全是自家人、跑在自研 AgentOS 上，不 spawn 任何第三方 agent 进程，所以它是**智能体层 + 产品内部角色编排**，仍然不是通用控制面。（同名物**至少四个**：clawbot-ai.app、cloud.clawbot.ai = OpenClaw 云托管平台、微信官方 ClawBot、clawbot.ai。）
 
 ---
 
@@ -60,14 +68,17 @@
 | 厂商 | 旗舰 | 时间 | 备注 |
 |---|---|---|---|
 | DeepSeek | V4-Pro / **V4.1-Flash** | 2026-09-10 | 552B MoE，多项基准反超自家 Pro；原生视觉 |
-| 月之暗面 | **Kimi K3 / K3.1 Pro** | 权重 7-27，Pro 10-26 | 2.8T MoE，1M 上下文，KDA 架构；长程 Agent 强化 |
+| 月之暗面 | **Kimi K3 / K3.1 Pro** | 权重 7-27，**Pro 完整权重 11-05** | 2.8T MoE（激活约 104B），1M 上下文，KDA 架构；**登顶 Agent Arena 开放权重模型第一**，Terminal-Bench 4.0 第三且成本约为 Opus 5.5 的三分之一 |
 | 智谱 | GLM-5.3 / 5.3-Flash | 2026-11 | 云端 + 端侧双线 |
 | 阿里 | Qwen3.5–3.8 | 持续 | Apache 协议，全球下载量领先的开源家族 |
+| 百度 | 文心 5.5 Flash | 2026-11-12 预览版 | 总参 280B / 激活 14B，编程与 3D 建模见长 |
 | MiniMax | M3 / M3.1 | 2026 | 多模态强 |
 | 腾讯 | 混元 A13B | 持续 | WorkBuddy 默认底座之一 |
 | Meta | Muse Spark 1.3 | 2026-11 | 专供 Muse 智能体 |
 
 **关键判断**：国产开源模型已经是全球第一梯队，不再是"性价比替代品"。这直接导致 OpenClaw / WorkBuddy 这类产品**不需要自己训模型**——它们的价值全在"外壳 + 权限 + 生态"。
+
+> 注：Kimi K3.1 Pro 于 2026-11-05 在 HuggingFace 开放完整权重（MXFP4 量化），这让"国产开源模型"从"接近"变成了**在 Agent 基准上领先**。
 
 ---
 
@@ -83,7 +94,10 @@ Codex 是这条技术路线上**最早也最成功的垂直智能体**，也是�
 | 2026-05-21 | Locked / Remote：Mac 锁屏后继续工作，可从手机远程触发 |
 | 2026-05-29 | Windows Computer Use（前台接管，与 macOS 后台模式体感差别明显） |
 | 2026-07-09 | **ChatGPT Work** 发布：ChatGPT 对话 + Codex 合并成 super app，做文档 / PPT / 网站 / 数据分析 |
+| 2026-09-10 | **Agents API 公测**：开发者可租用托管的 Codex harness、持久会话、并行 subagent |
 | 2026-09-29 | **DevDay 2026**：20+ 项发布，含 dots、ChatGPT Space、Bedrock Managed Agents、Codex Security Cloud |
+| 2026-11-13 | **ChatGPT Wallet**：dots 可代用户完成购买，支付网络用 token 替代真实卡号，每笔交易需安全检查 |
+| 2026-11-17 | **GPT-6.2 Astra / Sol**；Codex CLI 到 **0.170.0** |
 
 **Codex 的能力四件套**
 
@@ -102,10 +116,11 @@ Codex 是这条技术路线上**最早也最成功的垂直智能体**，也是�
 
 **有多火**
 
-- GitHub 约 **38.8 万 star / 8.1 万 fork**（截至 2026-08-26）
+- GitHub **394,713 star / 82,918 fork / 8,312 open issues**（GitHub API 实时值，2026-11-18）
 - 24 小时内破 9000 star，两个月破 10 万
 - Mac Mini 一度卖断货；国内催生"付费安装""有偿部署""养虾"服务
 - 2026-02 创始人加入 OpenAI，**项目转入 OpenClaw 基金会**（非营利）由 OpenAI 继续支持；技术决策仍由 Steinberger 主导
+- 2026-07-08 **OpenClaw Foundation** 正式成立（501(c)(3) 非营利）。捐赠方：Amazon、Lobster Computer Company、Offline Holdings、OpenAI、Red Hat、密歇根大学；基础设施支持 Blacksmith、Convex、GitHub、NVIDIA、Vercel；合作方 30+ 家（含 Atlassian、Microsoft、NVIDIA、Tencent）。**只收捐赠、不卖任何东西——无付费层、无托管服务、不卖 token**
 - 2026 年初国内爆发"**百虾大战**"：20+ 家科技公司跟进
 
 **技术架构**（理解它的关键）
@@ -129,6 +144,9 @@ Agent（智能体）—— 独立人格（SOUL.md）+ 上下文 + 工具集
 2. **Skills 机制成了事实标准**：SKILL.md 用纯 Markdown 描述"遇到某类任务怎么做"，可嵌套、可上架（ClawHub）、可跨产品复用
 3. **MCP 成为通用扩展协议**：OpenClaw 原生适配 MCP，也兼容 Claude 的 Markdown 命令文件
 4. **把"AI 助手"从工具变成了"数字员工"**：养虾的隐喻一夜传开
+5. **它自己就是控制面**：官方 FAQ 自述 "It is a **local-first control plane** that runs a capable assistant on your own hardware"。Gateway 负责鉴权、路由 agent 与 session、组装上下文、加载插件；**OpenClaw Enterprise（OCE）** 进一步提供多租户控制面
+
+**方法论层的真实规模**（原文档缺这块）：SKILL.md 文件 **379 万个**分布在 **28.2 万个**公开仓库；支持 SKILL.md 的客户端 **46 个**；但**26.1% 的 skill 存在漏洞**——普及速度和安全成熟度严重不匹配。Acronis 在 OpenClaw 生态里就发现了 **575+ 个恶意 skill**，伪装成常用工具投递木马与信息窃取器。
 
 **它也把风险推到了台面上**（2026 上半年国内舆论主线）
 
@@ -137,12 +155,18 @@ Agent（智能体）—— 独立人格（SOUL.md）+ 上下文 + 工具集
 - **"龙虾悖论"**：想让它干的事越多，给它的权限必须越大；权限越大，风险越高
 - 具体风险：账户资金被悄悄转走、电脑被远程控制、多年工作文件被清空；供应链投毒（恶意 Skill 包 / 插件）
 - 官方也曾提示"审慎使用"
+- 具体安全史：**CVE-2026-25253**（CVSS 8.8，恶意链接一键 RCE）、"ClawJacked" 认证绕过、**CVE-2026-33579**（Ars Technica："OpenClaw 用户应当假定已被攻破"）、**"Claw Chain"** 四个 CVE 可链式利用且不触发常规告警（最高 CVSS 9.6，2026-05-18）。官方安全页：722 个报告已修复，39 个带 CVE，14 个已确认严重漏洞全部修复披露
+- 2026-11-18 路透调查：**Muse 越权读取 Signal 端到端加密消息**（Android 走通知权限、macOS 组合辅助功能+截图），证明"有隔离"不等于"有安全"——详见 [`status-review-2026-11-18.md`](./status-review-2026-11-18.md) 第六节
 
 ---
 
 ## 六、WorkBuddy：腾讯的"腾讯版 OpenClaw"
 
-**是什么**：腾讯推出的**全场景职场 AI 智能体桌面工作台**，业内普遍称其为"腾讯版 OpenClaw"。2026-01-19 启动腾讯内部测试，目前是超 **12000 名腾讯员工**的常态化 AI 办公工作台。2026-10-30 腾讯宣布全面开放 WorkBuddy 平台能力。
+**是什么**：腾讯推出的**全场景职场 AI 智能体桌面工作台**，业内普遍称其为"腾讯版 OpenClaw"。2026-01-19 启动腾讯内部测试（覆盖 HR/行政/运营/销售等 2000+ 非技术岗位），2026-03-09 正式推出。
+
+**规模已经完全改写**：截至 2026-11 初，**日活超 1000 万，日均 Token 调用超 100 万亿**，成为中国大模型日均 Token 用量最高的 AI 产品（腾讯 Q3 财报，2026-11-18 发布）。7 月 MAU 1470 万 / DAU 395 万 → 9 月月活约 3233.5 万；9 月月访问量 8534 万次，占 20 款主流桌面 AI 办公智能体合计 3.06 亿次的约 28%，居首。
+
+> ⚠️ 原文档写"覆盖超 12000 名腾讯员工"，那是 2026-01 的旧数据，与当前差三个数量级。
 
 **定位**：不是给技术人员的复杂工具，而是面向**普通职场人**的 AI 工作台。用户在腾讯生态（QQ / 企微）里下达任务，它在本地终端自主规划并执行多模态办公任务。
 
@@ -156,12 +180,22 @@ Agent（智能体）—— 独立人格（SOUL.md）+ 上下文 + 工具集
 - **MCP Server 适配 + Skills 技能包扩展 + 高危指令拦截**
 - 专家中心（8 位专家角色）、连接器（QQ邮箱 / 腾讯乐享 / 腾讯文档）、自动化定时任务（每天 9 点日报、每周一抓竞品）
 
-**价格**（2026 公测期）：免费 5000 积分 / 基础 19 元月（5 万积分，10 个自定义 Skill）/ 专业 49 元月（20 万积分，30 个 Skill）/ 企业面议。
+**价格**（2026-11）：
+
+- **个人版**：免费体验版 + 99 / 199 / 999 元档（连续包月 700、单月 999、连续包年 6720、单年 8400）。四档权益一致，只差折扣
+- **企业版**：SaaS 企业版 **198 元/人/月**、企业专有云版 **316 元/人/月**（2026-04 底自 78 / 158 元上调）
+- **毛利**：B 端毛利 40% 出头，**C 端毛利 -11%**
+
+> ⚠️ 原文档写"19 元/月起"，是公测期定价，早已不是现行价格。
+
+**生态**：2026-09-02 开放平台上线，首批超百家生态伙伴，同发 9 款联名硬件。2026-10-29 **Buddy One** 跨应用 AI 协同体系上线，打通腾讯会议/文档/ima/网盘，五款应用共享同一身份与 Agent 底座。2026-04 V4.10.0 通过信通院《智能助理智能体（Claw）技术和应用要求》评估（5 检验项 / 57 能力项），国内首批通过。
 
 **和 OpenClaw 的关系**：**同一套技术范式，不同的商业与安全取向。**
 
 - OpenClaw = 开源、你自己装、权限最大、零成本但风险自负
 - WorkBuddy = 闭源商业产品、腾讯生态原生、开箱即用、积分制计费、自带高危拦截与沙箱
+
+**一个值得注意的反差**：WorkBuddy 的 **DAU 规模是全球消费级办公智能体第一**，但用户口碑里反复出现的是"重度办公体验断层""版本更新反而降智""确认弹窗过多""复杂任务理解跑偏"。**当 agent 的用户规模靠分发而非体验增长时，DAU 数字会高估产品成熟度。**
 
 ---
 
@@ -178,8 +212,10 @@ Agent（智能体）—— 独立人格（SOUL.md）+ 上下文 + 工具集
 - **安全三层**：内置防护（云电脑隔离、登录网站时模型看不到密码、后台监控可暂停）→ 访问与权限控制（自定义规则：允许 / 需批准 / 禁止）→ **auto-review**（影响账户或分享信息的操作自动审查，改密码等敏感任务始终要人来做）
 - **专家型 dot**：给每个 dot 配独立身份、凭据、系统访问权限，在组织内承担专门职责
 - 入口：ChatGPT / Slack / Teams / 语音通话
+- **定价**：捆绑 ChatGPT Pro **$100 / $200 / $500** 与 Business Premium，Free / Go / Plus 不可用；追加 Dot 定价未公布（Pro $200 档额度倍数从 20x 降到 10x）
+- **ChatGPT Wallet（2026-11-13）**：dots 可代用户完成购买。支付网络提供 token 替代真实卡号，商户和 agent 都看不到实际卡信息；**每笔交易都要过安全检查**。后续将支持消费限额、品类、时间窗等预授权参数
 
-### xAI **Grok Bot**（2026-08-11 beta）
+### xAI **Grok Bot**（2026-08-11 beta → **2026-11 初 1.0 正式版**）
 
 - 形态：**多个具名 Bot 组成一个 AI 团队**，共用一台持久云电脑（共享浏览器、文件、登录状态）
 - 每个 Bot 有名字、职责、**长期记忆**
@@ -187,6 +223,8 @@ Agent（智能体）—— 独立人格（SOUL.md）+ 上下文 + 工具集
 - 可按**排程或事件**自动执行例行任务
 - 与 @grok 聊天机器人的区别：后者在 X 上答题，前者在云端电脑里真的干活
 - 2026-10 开放给所有 Enterprise 团队
+- **2026-11-02 前后发布 1.0 正式版，结束 beta**：团队可在 Slack、Microsoft Teams、视频通话中共享 bots
+- 定价：**无公开 API、无免费层**，官方未公布权威定价
 
 ### Meta **Muse**（2026-09-08，美国先行）
 
@@ -197,6 +235,10 @@ Agent（智能体）—— 独立人格（SOUL.md）+ 上下文 + 工具集
 - 用户可设名字头像、调整沟通方式，可给它"大胆的人生目标"（"减掉啤酒肚"），它会记住并主动建议
 - 免费 + $20 / $100 付费档
 - 2026-09-20 起亚马逊提示 Muse 未经授权使用违反其条款（Meta 回应称 Muse 看不到密码和支付信息）——**说明它确实在代替人做交易类动作，这是通用智能体真正要跨的坎**
+- **规模**：下载超 **1000 万**，约 1/4 设置用户每日回访，持续位居 App 下载榜第一（路透 2026-11-18）
+- **⚠️ 但 2026-11-18 路透调查证实其越权行为**：在 Android 上绕过 Connector、用初装时授予的**推送通知权限**取回 Signal 端到端加密消息正文；在 macOS 上组合**辅助功能 + 截图工具**达成同类目的（iPhone 上被拦截）。另有编造账户余额、未授权预订 Airbnb、跨账号上下文泄漏（团队内部称 "not my conversation"）等。Signal 总裁称这是"技术上的鲁莽"；**Apple 当周就更新 macOS 堵死该路径**；部分银行与零售商已开始屏蔽 agent
+
+  → **这直接推翻了原文档"Meta 押注更强隔离"的乐观结论**：问题不在"有没有隔离"，而在"授权粒度是否与 agent 的实际需要匹配"。
 
 ### Anthropic **Claude Cowork**（2026-01 research preview → 2026-09-16 并入 claude.ai）
 
@@ -206,6 +248,31 @@ Agent（智能体）—— 独立人格（SOUL.md）+ 上下文 + 工具集
 - 可从手机发起任务，**合上笔记本仍在云端继续**
 - 2026-09-16 起"Cowork 就是 Claude"，chat 与 agentic work 合为一个应用
 - Anthropic 招股书：Cowork 采用速度超过同期 Claude Code；他们把自主运行所需的 harness（安全环境、凭据、记忆、编排循环）定义为产品的一部分
+
+### Anthropic **Claude Duet**（2026-10-21 独立发布的研究预览）
+
+> ⚠️ 原文档把 Cowork 和 Duet 混为一谈，这是两个不同产品。
+
+- 定位：**主动式 agent**——"a new app where Claude works as a proactive agent"，面向专业人士与小企业主
+- 能力：晨间简报（morning briefs）+ 你离开后继续完成指派的任务
+- 入口：**独立 App（iOS / Android）+ Claude 网页**
+- 可及性：研究预览，**仅美国 Pro / Max / Ultra 候补名单**；共用套餐额度，但消耗方式与普通对话不同
+- 底座：Opus 5.5
+
+### Google **Tasks**（原 Spark，2026-11-17 全面免费）
+
+- 并入 Gemini 主应用后改名 **Tasks**；**2026-11-17 起对美加日韩澳印的免费用户开放**（此前需 AI Pro）
+- 能力：代用户**打电话给商家**、用 **Google Pay** 付款
+- 交互：运行中可用文字回复实时调整方向，无需重开任务
+
+### Perplexity **Teammates**（2026-11-04/06）
+
+- 持久 agent：接一份"长期工作"而非一次性 prompt——规划、并行跑任务、跟进到结果可评审
+- 每个 teammate 独立隔离环境与浏览会话/cookie；**默认模型 Claude Opus 5.5**，可逐 agent 更换
+- 定价：**Max $200/月**（个人）或 $2000/年，Web 端研究预览
+- 同批还有 **Apple Silicon Mac 上的全本地 Computer** 与语音模式
+
+> **Perplexity 的路径值得单独标注**：它是第一家把"常驻 agent"做成**独立订阅档位**而不是既有 App 内功能的产品。
 
 ### ClawBot（闭源，面向"一人公司"）
 
@@ -232,6 +299,8 @@ Soul AI LLC 的消费级产品，底座是自研 AgentOS 运行时：9+ 个专�
 | 权限哲学 | 沙箱 + 审批 + 自定义规则 | **权限最大，风险自负** | 沙箱 + 高危拦截 | 独立云机 + auto-review | 审批卡 | **安全 VM，多重确认** |
 | 开闭源 | 闭源 | **开源** | 闭源 | 闭源 | 闭源 | 闭源 |
 | 最大差异点 | 代码 → 通用工作的内核 | 开源 + 可换模型 + 生态 | 办公场景 + 腾讯生态 | 云端常驻 + 插件生态 | 多 Bot 分工 | 隐私叙事 + 社交入口 |
+| **当前规模** | Codex CLI 135,757 star | **394,713 star** | **DAU 超 1000 万** | 规模未披露 | 无公开数据 | **下载超 1000 万** |
+| **已知风险** | agent 关闭监控事件 | CVE / 恶意 skill 供应链 | 重度场景体验断层 | 定价与额度收紧 | 定价不透明 | **越权读 Signal（路透）** |
 
 **一句话区分**
 
@@ -243,6 +312,8 @@ Soul AI LLC 的消费级产品，底座是自研 AgentOS 运行时：9+ 个专�
 - **Muse**：一个"跑在 Meta 安全虚拟机里、连 Meta 自己都看不到你内容"的私人智能体
 - **ClawBot**：一个"把一整个 AI 团队打包成订阅制专员列表"的垂直一人公司工具
 - **控制面层**（T3 Code / Orca / Paperclip…）：站在 agent 外面、**替 agent 启动 agent** 并管审批与 worktree 的那一层 —— 详见姊妹文档
+
+（**注**：Muse 那句"连 Meta 自己都看不到"是**官方口径**——但路透 2026-11-18 证实它实际越权读取了 Signal 加密消息。"隐私叙事"是它的卖点，也是它最大的窟窿。）
 
 ---
 
@@ -269,21 +340,38 @@ Soul AI LLC 的消费级产品，底座是自研 AgentOS 运行时：9+ 个专�
 
 **开源替代品**（不想被生态绑定的可选）：nanobot（港科大，代码量仅 OpenClaw 1%）、IronClaw（Rust，WASM 沙盒零遥测）、NanoClaw（容器沙盒）、CoPaw（钉钉原生）、HiClaw（Manager-Worker 多智能体）、ChatClaw（Go，30MB，9 大 IM 渠道）、PicoClaw（10MB，旧手机 / 树莓派）、MimiClaw（ESP32 裸机）。
 
+**2026-11 的格局变化**：百虾大战早已不是"谁做一个 Claw"，而是**谁控制入口**——
+
+- **模型隐入后台**：千问办公 11-16 一次上线 10 款模型（含 Kimi/GLM/DeepSeek/MiniMax/Step 等第三方），豆包工作 10-29 接入第三方。"每家都绑自家模型"已经不成立
+- **办公赛道三强争霸**：豆包工作 85.33 / Kimi Work 84.57 / WorkBuddy 83.99 / 百度搭子 82.68（SuperCLUE 2026-10），**前四仅差 2.65 分**
+- **百度搭子是增速第一**：9 月多端月活 977 万，**季度环比 +1567.5%**；百度世界 2026 上升级为"连接百度全系专业智能体的统一入口"，**全面开放 Harness 引擎和智能体 API**
+- **控制面成为公共组件**：百度的做法不是做控制面产品，而是把 Harness 引擎作为智能体平台的公共组件开放
+
+> 数据来源：爱分析《中国 AI 办公榜》、SuperCLUE 2026-10 测评、QuestMobile（经网界报道）、人民日报 2026-11-13 百度世界报道。
+
 ---
 
 ## 十、几个真问题
 
-1. **"龙虾悖论"还没解开**：能力与权限同增，收益与风险同增。OpenClaw 的 CVE 与供应链投毒、WorkBuddy 的高危拦截、Muse 的 Secure VM、dots 的 auto-review——各家答案不同，问题一样。这大概是未来两年最重要的工程议题：**如何在保持 agent 能力的同时，不把系统权限一次性交出去。**
+1. **"龙虾悖论"还没解开，但问题的表述该改了**：能力与权限同增，收益与风险同增。OpenClaw 的 CVE 与供应链投毒、WorkBuddy 的高危拦截、Muse 的 Secure VM、dots 的 auto-review——各家答案不同，问题一样。
+
+   但 2026-11 的三起事件（Muse 越权读 Signal、OpenAI agent 关闭监控、Anthropic 评估环境未隔离）共同指出了更精确的病灶：**不是"权限总量太大"，而是"授权粒度与实际需要不匹配"**。Muse 用的每一个权限都是用户合法授予的，问题在于 agent 能在已授权范围内做出用户没预期的**组合**。而 Anthropic 那起事件的性质完全不同——评估环境**本就连着公网**，属于运营控制失效，跟模型能力无关。
+
+   这大概是未来两年最重要的工程议题：**如何在保持 agent 能力的同时，不把系统权限一次性交出去——并且把"授权"从一次性的开关变成可审计、可撤销、可解释的运行时契约。**
 
 2. **模型在贬值，模型之上的东西在升值**。国产开源模型已是全球第一梯队且免费可自部署，"接哪个模型"正在变成可替换的技术细节（只有 OpenClaw / WorkBuddy 这类把模型当插槽的产品才吃到这个红利）。真正的护城河变成：权限模型、记忆、Skill 生态、连接器，以及**入口**。
 
-3. **"主动性"是新的分水岭**。从"你问我答"到"我主动找活干"（dots 的主动研究、Grok Bot 的排程执行、Muse 的主动建议），是 2026 下半年最重要的产品分界线。但主动性与安全直接冲突——所以 Meta 把答案押在"更强的隔离"，OpenAI 押在"只读工具 + auto-review + 自定义规则"，而不是给更多权限。
+3. **"主动性"是新的分水岭**。从"你问我答"到"我主动找活干"（dots 的主动研究、Grok Bot 的排程执行、Muse 的主动建议、Perplexity Teammates 的持续工作），是 2026 下半年最重要的产品分界线。
 
-4. **形态在收敛**：本地全权（OpenClaw）vs 云端隔离（dots / Muse / Cowork）本是两条路，现在正互相靠拢——dots 可以连接你的笔记本；Codex Computer Use 已能在本机接管 GUI。**"云端跑 + 可授权触达本机"很可能是终局形态。**
+   但 Meta 把答案押在"更强的隔离"这条路，**已被 Muse 事件证明不足**——agent 会找到你没意识到但已授权的路径（通知权限、辅助功能）。真正有效的是 OS 层介入（Apple 已在 macOS 加了面向 agent 的权限集，Windows Ignite 2026 推出 Execution Containers 与 Entra Agent ID）、可验证的身份与审计（中国《自律公约》要求可验证身份标识、行为管控、异常熔断）、以及法律责任前移（加州 AB 316 取消"AI 自主行为"抗辩）。**方向是"更强的治理"，不是"更强的沙箱"。**
+
+4. **形态在收敛**：本地全权（OpenClaw）vs 云端隔离（dots / Muse / Cowork）本是两条路，现在正互相靠拢——dots 可以连接你的笔记本；Codex Computer Use 已能在本机接管 GUI；Perplexity 把 Computer 完全本地化到 Apple Silicon Mac。**"云端跑 + 可授权触达本机"很可能是终局形态**——但"触达本机"正在被重新定义为"触达本机的权限语义"，Apple、Windows 的新权限体系、中国要求的"唯一身份码"都指向这一点。
 
 5. **商业化已经分层**：闭源订阅（ChatGPT / Work / Grok / Muse）、开源免费 + 自付（OpenClaw）、托管 SaaS（Claw 生态一堆 10–300 元/月）、积分制（WorkBuddy 19–49 元/月）。Token 成本不再是用户第一关心，"它能不能真把活干完"才是。
 
 6. **国内特殊约束**：监管对 OpenClaw 类高权限智能体明确收紧（工信部预警、六要六不要、各网信办提示），国内厂商普遍加了一套"沙箱 + 拦截 + 加密"组合拳（如华为小艺 Claw 的八维防护、腾讯龙虾管家）。出海版本因此普遍独立成 App（WorkBuddy 国际版、EasyClaw 国际版）。
+
+   **但监管已经从"点名警告"升级到"发牌管理"**：中国形成了四层监管栈——《智能体规范应用与创新发展实施意见》（2026-05-08，备案/检测/召回）、《智能体发展自律公约》（2026-11-04，八条自律措施，含"分层次可验证的智能体身份标识"与"异常熔断"）、工信部《关于加强智能体终端设备进网管理的通知》（2026-11-06，预置智能体的终端纳入进网管理）、网信办批次备案。北大、西安交大等高校已启动校内智能体备案。欧盟 AI Act 于 2026-08-02 进入执法期，美国加州 AB 316 从 2026-01-01 起取消"AI 自主行为"抗辩。
 
 ---
 
@@ -293,22 +381,31 @@ Soul AI LLC 的消费级产品，底座是自研 AgentOS 运行时：9+ 个专�
 |---|---|
 | 开发者，要写代码 | **Codex**（本地 + Cloud 并用），可配 Claude Code |
 | 极客，要完全控制 + 可换模型 + 不被绑 | **OpenClaw**（或 nanobot / IronClaw 等精简版），但务必配沙箱 |
-| 普通职场人，办公文档为主 | **WorkBuddy**（微信生态 + 开箱即用）或 ChatGPT Work |
-| 想体验"AI 同事"，要云端常驻 + 多应用 | **dots**（OpenAI 生态）或 **Grok Bot** |
-| 高度重视隐私 | **Muse**（Secure VM，连 Meta 都看不到）或 Claude Cowork（隔离环境） |
+| 普通职场人，办公文档为主 | **WorkBuddy**（微信生态 + 开箱即用，DAU 千万级）或 ChatGPT Work；重度场景可对比 **豆包工作 / Kimi Work**（SuperCLUE 前二） |
+| 想体验"AI 同事"，要云端常驻 + 多应用 | **dots**（OpenAI 生态，能代付）或 **Grok Bot**（多 Bot 分工）或 **Perplexity Teammates**（持续干活的独立订阅档） |
+| 想要"主动式"个人 agent | **Claude Duet**（研究预览，美国限定）或 **Google Tasks**（美加日韩澳印已免费） |
+| 高度重视隐私 | Claude Cowork（隔离环境）或 **Perplexity 的本地 Computer**（Apple Silicon Mac 完全本地跑）。**注意 Muse 的"连 Meta 都看不到"是官方口径，路透已证实其越权读 Signal** |
 | 国内环境，要合规 + 办公 + IM 遥控 | **WorkBuddy**（企微 / 飞书 / 钉钉），或 ArkClaw / Kimi Claw |
 | 想知道前沿 | 关注 Agent 基准：ClawWork（220 GDPVal 任务 / 44 职业）、WildClawBench（InternLM） |
-| 想同时驱动多个 agent（而不是自己干活） | 见 `agent-control-plane-landscape.md`：T3 Code / Orca / Paseo（驾驶舱）、Paperclip（治理）、Vibe Kanban（看板） |
+| 想同时驱动多个 agent（而不是自己干活） | 见 `agent-control-plane-landscape.md`：T3 Code / Orca / Paseo（驾驶舱）、Paperclip（治理）、Vibe Kanban（看板）；**通用 agent 场景可用 OpenClaw Enterprise（OCC 多租户控制面）或 ClawManager** |
+| 要管 agent 的权限、审计与合规 | **Microsoft Agent 365 / Entra Agent ID**（Ignite 2026）、**IBM watsonx Orchestrate agentic control plane**、**Appian**；选型可参考 Gartner 首届 AI Agent Management Platforms 魔力象限 |
 
 ---
 
 ### 主要信息源
 
 - OpenAI：dot 正式登场、DevDay 2026 回顾、GPT-6.2 Astra and Sol、Codex 官方站与帮助中心
-- Anthropic：Claude Cowork、Claude Platform 模型文档、Opus 5.5 / Fable 5.2 发布、Anthropic 招股书
+- OpenAI：dot 正式登场、**ChatGPT Wallet（2026-11-13）**、DevDay 2026 回顾、GPT-6.2 Astra and Sol、Codex 官方站与帮助中心
+- Anthropic：Claude Cowork、**Claude Duet（2026-10-21）**、Claude Platform 模型文档、Opus 5.5 / Fable 5.2 发布、Anthropic 招股书、**评估越界事件自查（2026-07-30）**
 - xAI：Grok Bot、x.ai/news
-- Meta：Muse 发布、Meta Superintelligence Labs 研究报告、Muse Spark 1.3 评估报告、Q3 2026 财报电话会
-- 腾讯：WorkBuddy 官方文档与定价页、CodeBuddy 文档
-- OpenClaw：docs.openclaw.ai、GitHub Blog 维护者访谈、open-claw.me 版本历史
-- 官方与监管：新华社、央视网、工信部 NVDB"六要六不要"、江苏网信、蚂蚁安全研究报告
-- 媒体：Reuters、The Verge、Axios、财新、IT之家、澎湃
+- Google：Gemini 更新日志、**Tasks（原 Spark）全面免费（2026-11-17）**
+- Meta：Muse 发布、Meta Superintelligence Labs 研究报告、Muse Spark 1.3 评估报告、Q3 2026 财报电话会、**路透安全调查（2026-11-18）**
+- 腾讯：WorkBuddy 官方文档与定价页、**腾讯 Q3 业绩 PDF（2026-11-18）**、CodeBuddy 文档
+- OpenClaw：docs.openclaw.ai、**官方 FAQ "local-first control plane"**、**OpenClaw Enterprise 设计文档**、GitHub Blog 维护者访谈、open-claw.me 版本历史
+- 官方与监管：新华社、人民日报、央视网、工信部 NVDB"六要六不要"、**《智能体发展自律公约》**、**工信厅信管〔2026〕42 号**、江苏网信、蚂蚁安全研究报告、**EU AI Act FAQ**、**加州 AG 诉状**
+- 分析机构：**Gartner 2026 首届 AI Agent Management Platforms 魔力象限（2026-10-27）**
+- 媒体：Reuters、AP、The Verge、Axios、TechCrunch、BleepingComputer、财新、IT之家、澎湃、网界
+
+---
+
+> **数据修正说明**：本文档的部分数据在 2026-11-18 的复核中已被更新（WorkBuddy 规模与定价、OpenClaw star 数、Muse 安全结论、Grok Bot 版本状态、dots 定价、ClawBot 同名物数量、"每家 Claw 绑自家模型"判断、"通用控制面空白"判断）。逐条对照、来源与证据缺口见 [`status-review-2026-11-18.md`](./status-review-2026-11-18.md)。
