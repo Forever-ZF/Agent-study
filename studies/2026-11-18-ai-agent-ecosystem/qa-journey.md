@@ -1,0 +1,169 @@
+# 问答纪要：三层心智模型是怎么长出来的
+
+> 配套文档：[`ai-2026-11-overview.md`](./ai-2026-11-overview.md) · [`agent-control-plane-landscape.md`](./agent-control-plane-landscape.md)
+>
+> 这份纪要记录 2026-11-18 那次会话的真实推演过程。两份正式文档是**结论**，这里是**结论怎么来的**。
+> 保留它的理由：最终那套"智能体层 / 控制面层 / 方法论层"的判据，是被追问到第三遍才收敛出来的，
+> 中间纠正过三个错误认知——这些弯路本身比结论更有复用价值。
+
+---
+
+## 一、问题链总览
+
+| 轮次 | 提问 | 产出 |
+|---|---|---|
+| 1 | 现在的 AI 发展到什么程度了？LLM → Codex → WorkBuddy → 小龙虾 → Grok / Muse 之间是什么关系 | `ai-2026-11-overview.md` |
+| 2 | T3 Code 跟小龙虾、跟 Codex 的区别是啥 | 控制面层概念引入 |
+| 3 | T3 Code 跟 solo-to-team-skills 有啥区别，感觉都是调度其他智能体 | 方法论层概念引入 |
+| 4 | （复述自己的理解求验证）Codex 不能操作别的 agent，T3 Code / Muse 就是干这个的？ | **三层坐标成型**，纠正 3 处 |
+| 5 | "我还是不理解"——重复确认第 4 轮结论 | 判据压缩成一句话 |
+| 6 | 市面上真正控制多智能体的（控制面层）有哪些 | `agent-control-plane-landscape.md` |
+| 7 | clawbot-ai.app 算控制面层吗 | 反向空白案例 |
+
+第 4 轮是分水岭。第 1 轮的提问用的是**时间轴**（先 LLM、后 Codex、再小龙虾），
+到第 4 轮才切换到**架构轴**（谁 spawn 谁、谁被谁加载）。这两套坐标不能混用——这是整场调研最关键的一次升维。
+
+---
+
+## 二、逐轮纪要
+
+### 第 1 轮 · 要一张全景图
+
+> **问**：你帮我整理下 AI 现在的发展情况，从 llm 到 codex、workbuddy 通用智能体到小龙虾，然后到 grok、muse 等之间的发展情况以及区别。
+
+这轮建立的是**时间阶段**坐标，四阶段：对话期（LLM）→ 垂直智能体（Codex / Claude Code）→ 通用外壳（OpenClaw）→ 常驻通用智能体（dots / Grok Bot / Muse / Cowork / WorkBuddy）。
+
+核心判断：**这三年 AI 的主线不是模型变大，而是 AI 从"回答你"变成"替你做"，再变成"自己找活干"。** 模型层正在商品化，国产开源模型已是全球第一梯队，所以 OpenClaw / WorkBuddy 这类产品不需要自己训模型，价值全在"外壳 + 权限 + 生态"。
+
+> ⚠️ 这轮只回答了"先后顺序"，没回答"结构差异"。这个缺口到第 4 轮才补上。
+
+### 第 2 轮 · T3 Code 是什么
+
+> **问**：现在 github 上有个项目 T3 code，他跟小龙虾或者说通用智能体 codex 的区别是啥
+
+结论一句话：**T3 Code 不是智能体，它是"智能体的驾驶舱"。**
+
+关键证据是它自己的措辞——"The open-source control plane for coding agents"、"T3 Code does not resell tokens"、"If an agent is set up on your computer, T3 Code can control it"。以及官方 FAQ 里最精确的一句：**harness 是把模型变成 agent 的那一层，Claude Code 和 Codex 就是 harness；T3 Code 不是 harness，它跟这些 harness 对话。**
+
+它自己有一份 provider 列表：Claude Code、Codex CLI、Cursor、OpenCode、Grok Build、Antigravity、Kiro、Pi、Muse Code、fx，以及任何走 ACP 协议的 agent。
+
+**这轮埋下了一个关键伏笔**：provider 列表里全是编码 agent，**一个通用智能体都没有**。当时只是记下来，第 6 轮才意识到这是个结构性事实。
+
+### 第 3 轮 · T3 Code vs solo-to-team-skills
+
+> **问**：那 T3code 跟 solo-to-team-skills 这样的仓库有啥区别，感觉都是调度其他智能体
+
+用户的直觉对了一半。差异在三个维度：
+
+| 维度 | T3 Code | solo-to-team-skills |
+|---|---|---|
+| 调度粒度 | **进程**（真的 spawn 出 CLI 进程） | **席位**（同一个 agent 内部的角色扮演） |
+| 交付物 | 程序（Electron + server + 移动端） | Markdown（SKILL.md 装进宿主目录） |
+| 谁在编排 | 程序编排 | **人编排**（它的 tagline 就是 "Human-led"） |
+
+而且它俩其实是**上下游，不是竞品**——T3 Code 的中文教程手册 §11.1 写着："T3 Code 提供的是「讓多個 Agent 平行工作並能互相委派的基礎設施」；**任務拆解、依賴控制、整合與驗收仍需團隊流程或外部工具。**"
+
+**这句"官方承认自己短板"是整场调研最有分量的证据之一**：它从被调度方的嘴里，确认了控制面层和方法论层是两件事。
+
+### 第 4 轮 · 分水岭：三层坐标成型
+
+> **问**：我还是不太清晰。我理解 codex 就是相当于是一个智能体，他已经能够操作电脑了，但它还是不能够操作其他 agent 比如 claude code 或者 workbuddy、DeepSeek Harness。而 T3code 或者 muse 等就是做这个的。而 solo-to-team 虽然也是调用 workbuddy、Grok、DeepSeek Harness 但跟 T3code 不一样是嘛
+
+这段提问里有**三个需要纠正的点**：
+
+| 原判断 | 校准 |
+|---|---|
+| Codex 不能操作其他 agent | ✅ **实践对，技术上不是**。Codex 自己的子 agent 只限自家；但官方有 `codex-acp`，OpenClaw 有 ACP agents 插件。**能不能互驱取决于有没有 ACP 适配器，不取决于分层** |
+| T3 Code 或 **Muse** 是做"调度其他 agent"的 | ❌ **Muse 是错的**。Muse 是 Meta 消费级智能体，跑在 Secure VM 里，和 Codex **同层**。Meta 真正能被 T3 Code 驱动的是 **Muse Code**——终端编码 agent |
+| solo-to-team 也在"调用" WorkBuddy / Grok / DeepSeek Harness | ⚠️ **不调用，是被装进去**。它把 SKILL.md 拷进 `~/.workbuddy/skills/`，由宿主自己加载执行，**它不启动任何进程** |
+
+由此收敛出那张贯穿全部文档的表：
+
+| 层级 | 判据 | 代表 |
+|---|---|---|
+| **① 智能体层** | 它自己就是那个干活的进程 | Codex、Claude Code、Muse Code、WorkBuddy、Grok Bot、DeepSeek Harness、OpenClaw |
+| **② 控制面层** | **它启动进程**——spawn CLI、分配 worktree、把审批流回来 | T3 Code、Orca、Paseo、Paperclip、agent-autoloop、Vibe Kanban |
+| **③ 方法论层** | **它被进程加载**——SKILL.md 拷进 `~/.xxx/skills/` | solo-to-team-skills、mcode-stack、tstack |
+
+**判据只有一条**：看它是在"启动进程"还是"被进程加载"。
+
+### 第 5 轮 · 压缩成一句话
+
+> **问**（连着问了两遍，中间有一句被截断）：我还是不理解，也就是说 T3 code 就能实际上真正调用其他智能体，而 solo-to-team 调用其他智能体本质上只是将 skill 放进其他智能体的目录下，然后自己手动去其他智能体调用是吗？
+
+> **答**：**对，你理解对了。** 这就是最核心的分界。
+
+但补了一处微调——用户说"手动去其他智能体调用"，准确说法是：**skill 内部的步骤是 agent 自动执行的；skill 之间的步骤（派活、催办、验收）是人工的。**
+
+这轮最有价值的是一个**可以当场验证的判据**：
+
+> T3 Code 跑起来时 `ps` 能看到 `claude`、`codex` 这些子进程；solo-to-team 跑起来时，`ps` 里多出来的只有几个 `.md` 文件。
+
+还有一条对 T3 Code 的泼冷水，来自它自己的手册：它给你并行跑的地基和管道，但"这个任务该拆成几块、拆给谁、几个结果怎么合、哪个算过关"还是要你来定。**它不替你做任务分解，也不替你验收。**
+
+一句话收口：
+
+> **Codex 是员工（自己会干活，也能操作你的电脑，但不会去指挥别的员工）。T3 Code 是车队调度中心（站在外面，把 Claude Code、Codex、Cursor 这些进程同时管起来、并行、审批、一键开 PR）。solo-to-team 是岗位手册和交接单制度（装进每一个员工身上，规定谁接单、谁核证、怎么留证据）。**
+
+### 第 6 轮 · 控制面层到底有多少东西
+
+> **问**：市面上类似控制面层、真实控制多智能体有哪些？
+
+查完的结论比预期大：**已有 343+ 个开源工具**（agent-orchestrators.com 收录数），不止一个 100k star 的大项目。归纳成六种形态：**A 多会话驾驶舱 / B 看板式任务流 / C 组织治理型控制平面 / D 自动化中台 / E 终端层 / F 大规模 fleet**。
+
+这一轮把第 2 轮埋下的伏笔兑现成了结论：
+
+> **这一层几乎全是编码场景。** 因为只有编码 agent 同时有清晰边界——CLI 进程 + git 仓库 + PR 流程。通用 agent（WorkBuddy / OpenClaw / Grok Bot）的控制面**至今是空白**，这正好解释了为什么 T3 Code 的 provider 列表里一个通用智能体都没有。
+
+另一个关键事实是 **ACP 已经成为这一层的通用接口**：稳定线协议 v1（2026-11-05），Registry 收录 47 个 agent，官方适配器 `claude-agent-acp` / `codex-acp` 都在。JetBrains 2026-09-22 发布的 JetBrains Air 也明确以 ACP 作为 IDE ↔ agent harness 的连接标准。
+
+> 选型时的推论：**看它支持几个 ACP agent，比看它自称支持多少 agent 更靠谱。**
+
+### 第 7 轮 · 一个反向案例
+
+> **问**：那 clawbot-ai.app 这个也是控制面层的吗
+
+**不是。** 它属于①智能体层，但内部自带了一套多角色编排。
+
+看着像控制面，关键差别在：**它不控制任何第三方 agent 进程**——九个专员（研究、编程、内容、广告投放、增长、产品、交易、微信内测、电脑操作内测）全是它自己家的角色，全部跑在自研 AgentOS 上；它的"编排"是同一产品内部的角色分工，而不是进程级的第三方调度。
+
+**这是"多角色产品"和"多 agent 控制面"之间那条最关键的线。**
+
+顺带得到一个有意思的对照：**ClawBot 本质上是 solo-to-team-skills 方法论的闭源商业版。**
+
+| | solo-to-team-skills | ClawBot |
+|---|---|---|
+| 结构 | 16 席 / 6 群 / 派收核判 | 9 个专员 / 各自独立记忆 / 各自订阅 / 统一审批 |
+| 宿主 | SKILL.md 拷进 Codex、Claude Code、Grok 的目录 | 全自建闭环 |
+| 跨 agent 搬运 | 人工 | 不存在（都在自家 AgentOS 上） |
+
+语义结构几乎一一对应，区别是它把宿主、agent、记忆、审批全自建了，所以能做成 SaaS 收费——但也就没有"通用控制面"这回事了。这恰好印证了第 6 轮的判断：**通用 agent 的控制面至今仍是空白**，ClawBot 是这个空白的一种"垂直闭源答案"，不是通用答案。
+
+---
+
+## 三、三个反复出现的坑
+
+复盘时，这三点是最值得带走的：
+
+1. **"能互驱"是协议问题，不是分层问题。** 容易把"Codex 驱动不了 Claude Code"当成"Codex 不是控制面"的证据。真相是：适配器到位时跨层驱动就成立。分层只回答"它到底在干什么"，不回答"它能不能连上别人"。
+
+2. **同名不同物。** 这次踩到的：Muse vs Muse Code、三个 ClawBot。检索时容易把不同产品混成一个条目，结论就会跑偏。
+
+3. **"看起来像控制面"是最常见的误判。** ClawBot 有 9+ 专员、各自记忆、分级审批——**形态像，进程关系不像**。判据只有一个：它启动的是第三方进程吗？
+
+---
+
+## 四、如果重来一次
+
+**先立坐标，再填内容。** 第 1 轮就问"这些东西是什么关系"，得到了时间轴；第 4 轮才发现真正需要的是架构轴。下次遇到"帮我整理下 X 生态"，第一个问题应该是：
+
+> **"这几个东西之间，谁启动谁？"**
+
+这个问题能一次性定位层级，省掉前三轮的反复横跳。
+
+**结论要能反查。** 每个结论都问一句"什么情况下它是错的"。比如"通用 agent 的控制面是空白"，反例就是 ClawBot——它证明了需求真实存在，只是用闭源垂直的方式回答了。带上这种反例，结论才不会被下一个新样本推翻。
+
+---
+
+*整理自 2026-11-18 的 Codex 会话 `01a1ec73-59d2-7823-8296-030ba3992e70`。*
+
